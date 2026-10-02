@@ -479,23 +479,28 @@ h3{font-family:var(--sans);font-size:var(--t2);font-weight:600;margin:0 0 12px}
     var end = +el.getAttribute('data-count'), o = {v:0};
     tl.to(o, {v:end, duration:1.4, ease:'power2.out', onUpdate:function(){ el.textContent = Math.round(o.v).toLocaleString('en-US'); }}, 0.5 + i*0.06);
   });
+  // Safety net: if the browser pauses animation (background tab, in-app preview),
+  // show the finished hero anyway so the summary and numbers are never left blank
+  setTimeout(function(){ if (tl.progress() < 1) tl.progress(1); }, 2500);
+
+  function finishLater(tw){ setTimeout(function(){ if (tw && tw.progress() < 1) tw.progress(1); }, 2500); }
 
   // bars draw when they come into view
   function grow(sel, trigger){
     var els = document.querySelectorAll(sel);
     if (!els.length) return;
-    gsap.from(els, {scaleX:0, duration:1.1, ease:'power3.out', stagger:0.08,
-      scrollTrigger:{trigger: trigger || els[0], start:'top 85%', once:true}});
+    var tw = gsap.from(els, {scaleX:0, duration:1.1, ease:'power3.out', stagger:0.08,
+      scrollTrigger:{trigger: trigger || els[0], start:'top 85%', once:true, onEnter:function(){ finishLater(tw); }}});
   }
   grow('#thennow .tn-b', '#thennow');
   grow('#funnel .f-bar', '#funnel');
   document.querySelectorAll('.tables table').forEach(function(t){ grow('#' + (t.id || (t.id = 't' + Math.random().toString(36).slice(2))) + ' .b', t); });
 
   // A/B bars rise from the baseline, then the intervals appear
-  gsap.from('#abchart .abb', {scaleY:0, transformOrigin:'50% 100%', duration:1, ease:'power3.out', stagger:0.12,
-    scrollTrigger:{trigger:'#abchart', start:'top 80%', once:true}});
-  gsap.from('#abchart .abci line', {opacity:0, duration:0.5, delay:0.8,
-    scrollTrigger:{trigger:'#abchart', start:'top 80%', once:true}});
+  var ab1 = gsap.from('#abchart .abb', {scaleY:0, transformOrigin:'50% 100%', duration:1, ease:'power3.out', stagger:0.12,
+    scrollTrigger:{trigger:'#abchart', start:'top 80%', once:true, onEnter:function(){ finishLater(ab1); }}});
+  var ab2 = gsap.from('#abchart .abci line', {opacity:0, duration:0.5, delay:0.8,
+    scrollTrigger:{trigger:'#abchart', start:'top 80%', once:true, onEnter:function(){ finishLater(ab2); }}});
 })();
 </script>
 </body>
